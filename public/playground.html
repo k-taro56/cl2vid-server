@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog to Video - Playground</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #444;
+        }
+
+        input[type="url"],
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="url"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            display: none;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.processing {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .status-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(25, 118, 210, 0.3);
+            border-top-color: #1976d2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .video-result {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .video-result.show {
+            display: block;
+        }
+
+        .video-result video {
+            width: 100%;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .video-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #f5f5f5;
+            border-radius: 0.5rem;
+            color: #667eea;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .video-link:hover {
+            background: #e0e0e0;
+        }
+
+        .example-links {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 0.5rem;
+        }
+
+        .example-links p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .example-links a {
+            display: inline-block;
+            margin-right: 1rem;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .example-links a:hover {
+            text-decoration: underline;
+        }
+
+        .job-info {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Changelog to Video</h1>
+            <p>GitHub ChangelogからAI動画を生成</p>
+        </div>
+
+        <div class="card">
+            <form id="videoForm">
+                <div class="form-group">
+                    <label for="changelogUrl">GitHub Changelog URL</label>
+                    <input
+                        type="url"
+                        id="changelogUrl"
+                        name="changelogUrl"
+                        placeholder="https://github.com/owner/repo/blob/main/CHANGELOG.md"
+                        required
+                    >
+                    <div class="example-links">
+                        <p>サンプル:</p>
+                        <a href="#" data-url="https://github.com/anthropics/anthropic-sdk-typescript/blob/main/CHANGELOG.md">Anthropic SDK</a>
+                        <a href="#" data-url="https://github.com/honojs/hono/blob/main/CHANGELOG.md">Hono</a>
+                        <a href="#" data-url="https://github.com/colinhacks/zod/blob/main/CHANGELOG.md">Zod</a>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label for="aspectRatio">アスペクト比</label>
+                        <select id="aspectRatio" name="aspectRatio">
+                            <option value="16:9">16:9 (横長)</option>
+                            <option value="9:16">9:16 (縦長)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="resolution">解像度</label>
+                        <select id="resolution" name="resolution">
+                            <option value="1080p">1080p (Full HD)</option>
+                            <option value="720p">720p (HD)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn">動画を生成</button>
+            </form>
+
+            <div id="status" class="status">
+                <div class="status-content">
+                    <div class="spinner"></div>
+                    <div>
+                        <div id="statusText">処理中...</div>
+                        <div id="jobInfo" class="job-info"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="videoResult" class="video-result">
+                <h3>✨ 生成完了！</h3>
+                <video id="videoPlayer" controls></video>
+                <a id="videoLink" href="#" target="_blank" class="video-link">動画をダウンロード</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('videoForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const status = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+        const jobInfo = document.getElementById('jobInfo');
+        const videoResult = document.getElementById('videoResult');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoLink = document.getElementById('videoLink');
+
+        // Example links
+        document.querySelectorAll('.example-links a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('changelogUrl').value = link.dataset.url;
+            });
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const data = {
+                changelogUrl: formData.get('changelogUrl'),
+                aspectRatio: formData.get('aspectRatio'),
+                resolution: formData.get('resolution')
+            };
+
+            submitBtn.disabled = true;
+            status.className = 'status show processing';
+            statusText.textContent = '動画生成ジョブを開始しています...';
+            jobInfo.textContent = '';
+            videoResult.classList.remove('show');
+
+            try {
+                // Create job
+                const response = await fetch('/v1/api/generate-video', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create job');
+                }
+
+                const job = await response.json();
+                jobInfo.textContent = `Job ID: ${job.id}`;
+                statusText.textContent = 'ジョブを作成しました。処理を開始します...';
+
+                // Poll for completion
+                await pollJobStatus(job.id);
+
+            } catch (error) {
+                status.className = 'status show error';
+                statusText.textContent = `エラー: ${error.message}`;
+                submitBtn.disabled = false;
+            }
+        });
+
+        async function pollJobStatus(jobId) {
+            const maxAttempts = 120; // 20 minutes
+            let attempts = 0;
+
+            while (attempts < maxAttempts) {
+                try {
+                    const response = await fetch(`/v1/api/jobs/${jobId}`);
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch job status');
+                    }
+
+                    const job = await response.json();
+
+                    switch (job.status) {
+                        case 'queued':
+                            statusText.textContent = 'キューに追加されました...';
+                            break;
+                        case 'processing':
+                            statusText.textContent = '動画を生成しています... (数分かかります)';
+                            break;
+                        case 'completed':
+                            status.className = 'status show success';
+                            statusText.textContent = '動画生成が完了しました！';
+                            videoPlayer.src = job.videoUrl;
+                            videoLink.href = job.videoUrl;
+                            videoResult.classList.add('show');
+                            submitBtn.disabled = false;
+                            return;
+                        case 'failed':
+                            throw new Error(job.error || 'Video generation failed');
+                    }
+
+                    // Wait 10 seconds before next poll
+                    await new Promise(resolve => setTimeout(resolve, 10000));
+                    attempts++;
+
+                } catch (error) {
+                    status.className = 'status show error';
+                    statusText.textContent = `エラー: ${error.message}`;
+                    submitBtn.disabled = false;
+                    return;
+                }
+            }
+
+            status.className = 'status show error';
+            statusText.textContent = 'タイムアウト: 動画生成に時間がかかりすぎています';
+            submitBtn.disabled = false;
+        }
+    </script>
+</body>
+</html>
