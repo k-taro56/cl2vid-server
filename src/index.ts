@@ -69,3 +69,5 @@ serve(
     }
   }
 );
+
+export default app;
